@@ -22,6 +22,22 @@ def test_parse_csv(tmp_path):
     ]
 
 
+def test_parse_csv_with_header_and_multiple_files(tmp_path):
+    csv1 = "Date,Description,Amount\n01/05/2024,Coffee,-5\n"
+    csv2 = "2024-01-06,income,100\n"
+    path1 = tmp_path / "card.csv"
+    path1.write_text(csv1)
+    path2 = tmp_path / "extra.csv"
+    path2.write_text(csv2)
+
+    result = parse_csv([str(path1), str(path2)])
+
+    assert result == [
+        (date(2024, 1, 5), "Coffee", -5.0),
+        (date(2024, 1, 6), "income", 100.0),
+    ]
+
+
 def test_summarize_and_savings_rate():
     transactions = [
         (date(2024, 1, 1), "income", 3000.0),
