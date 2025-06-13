@@ -78,6 +78,7 @@ def _parse_csv_file(path: str) -> List[Transaction]:
         skip_blank_lines=True,
         on_bad_lines="skip",
         engine="python",
+        index_col=False,
     )
 
     header = [str(col) for col in df.columns]
