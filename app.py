@@ -6,8 +6,7 @@ import sys
 import logging
 from typing import Sequence
 
-from fhm import parse_csv, savings_rate, summarize
-from fhm.models import Summary
+from fhm import parse_csv, summarize
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +22,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     logger.info("Processing %d input file(s)", len(argv))
 
     transactions = parse_csv(argv)
-    cat_totals, month_data, overall = summarize(transactions)
-    summary = Summary(
-        category_totals=cat_totals,
-        savings_rate=savings_rate(month_data),
-        overall_balance=overall,
-    )
+    summary = summarize(transactions)
     print("Category Totals")
     for cat, total in summary.category_totals.items():
         print(f"{cat:10s} {total:.2f}")

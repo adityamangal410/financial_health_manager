@@ -9,7 +9,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastmcp.server import FastMCP
 from fhm.models import Summary
 
-from fhm import parse_csv, savings_rate, summarize
+from fhm import parse_csv, summarize
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +21,9 @@ def summarize_csvs(paths: list[str]) -> Summary:
     """Summarize one or more CSV files given by path."""
     logger.info("Summarizing CSV files via MCP: %s", paths)
     transactions = parse_csv(list(paths))
-    cat_totals, month_data, overall = summarize(transactions)
-    logger.debug("MCP summary generated. Overall balance: %s", overall)
-    return Summary(
-        category_totals=cat_totals,
-        savings_rate=savings_rate(month_data),
-        overall_balance=overall,
-    )
+    summary = summarize(transactions)
+    logger.debug("MCP summary generated. Overall balance: %s", summary.overall_balance)
+    return summary
 
 
 app = FastAPI(title="Financial Health Manager")
@@ -52,12 +48,7 @@ async def summarize_endpoint(files: List[UploadFile] = File(...)) -> Summary:
         paths.append(temp.name)
 
     transactions = parse_csv(paths)
-    cat_totals, month_data, overall = summarize(transactions)
-    summary = Summary(
-        category_totals=cat_totals,
-        savings_rate=savings_rate(month_data),
-        overall_balance=overall,
-    )
+    summary = summarize(transactions)
     for path in paths:
         os.unlink(path)
     logger.debug("Summary from endpoint computed: %s", summary.json())
