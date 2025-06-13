@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import date
 from pydantic import BaseModel
+
+
+class Transaction(BaseModel):
+    """Single financial transaction."""
+
+    date: date
+    category: str
+    amount: float
 
 
 class Summary(BaseModel):

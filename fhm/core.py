@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-import csv
+import io
 import logging
 from collections import defaultdict
 from datetime import date, datetime
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
+import pandas as pd
+
+from .models import Summary, Transaction
 
 DATE_FIELDS = {
     "date",
@@ -62,33 +65,51 @@ def _find_index(header: Sequence[str], options: Iterable[str]) -> Optional[int]:
     return None
 
 
-def _parse_csv_file(path: str) -> List[Tuple[date, str, float]]:
+def _parse_csv_file(path: str) -> List[Transaction]:
     """Parse a single CSV file of transactions."""
     logger.info("Parsing CSV file %s", path)
-    transactions: List[Tuple[date, str, float]] = []
-    with open(path, newline="") as f:
-        reader = csv.reader(f)
-        rows = list(reader)
 
-    if not rows:
+    with open(path) as f:
+        valid_lines = [line for line in f if line.strip() and len(line.split(",")) >= 3]
+
+    if not valid_lines:
         logger.warning("CSV file %s is empty", path)
-        return transactions
+        return []
 
+    df = pd.read_csv(
+        io.StringIO("".join(valid_lines)),
+        header=None,
+        skip_blank_lines=True,
+        on_bad_lines="skip",
+        engine="python",
+    )
+
+    first_row = [str(x).strip() for x in df.iloc[0].tolist()]
+    first_lower = [col.lower() for col in first_row]
     header: Optional[List[str]] = None
-    try:
-        _parse_date(rows[0][0])
-    except Exception:
-        header = rows.pop(0)
+    if any(
+        col
+        in DATE_FIELDS | CATEGORY_FIELDS | AMOUNT_FIELDS | CREDIT_FIELDS | DEBIT_FIELDS
+        for col in first_lower
+    ):
+        header = first_row
+        df = df.iloc[1:].reset_index(drop=True)
         logger.debug("Detected header row for %s: %s", path, header)
 
+    transactions: List[Transaction] = []
+
     if header is None:
-        for row in rows:
-            if not row:
+        for _, row in df.iterrows():
+            try:
+                tx_date = _parse_date(str(row.iloc[0]))
+                category = str(row.iloc[1])
+                amount = _parse_amount(str(row.iloc[2]))
+            except (IndexError, ValueError, KeyError):
+                logger.warning("Skipping malformed row in %s: %s", path, row.tolist())
                 continue
-            tx_date = _parse_date(row[0])
-            category = row[1]
-            amount = _parse_amount(row[2])
-            transactions.append((tx_date, category, amount))
+            transactions.append(
+                Transaction(date=tx_date, category=category, amount=amount)
+            )
         logger.info("Parsed %d transactions from %s", len(transactions), path)
         return transactions
 
@@ -111,29 +132,43 @@ def _parse_csv_file(path: str) -> List[Tuple[date, str, float]]:
         category_idx,
     )
 
-    for row in rows:
-        if not row:
+    for _, row in df.iterrows():
+        try:
+            tx_date = _parse_date(str(row.iloc[date_idx]))
+            if amount_idx is not None:
+                amount = _parse_amount(str(row.iloc[amount_idx]))
+            else:
+                credit = (
+                    _parse_amount(str(row.iloc[credit_idx]))
+                    if credit_idx is not None
+                    else 0.0
+                )
+                debit = (
+                    _parse_amount(str(row.iloc[debit_idx]))
+                    if debit_idx is not None
+                    else 0.0
+                )
+                amount = credit - debit
+            category = (
+                str(row.iloc[category_idx])
+                if category_idx is not None
+                else "uncategorized"
+            )
+        except (KeyError, ValueError, IndexError):
+            logger.warning("Skipping malformed row in %s: %s", path, row.tolist())
             continue
-        tx_date = _parse_date(row[date_idx])
-        if amount_idx is not None:
-            amount = _parse_amount(row[amount_idx])
-        else:
-            credit = _parse_amount(row[credit_idx]) if credit_idx is not None else 0.0
-            debit = _parse_amount(row[debit_idx]) if debit_idx is not None else 0.0
-            amount = credit - debit
-        category = row[category_idx] if category_idx is not None else "uncategorized"
-        transactions.append((tx_date, category, amount))
+        transactions.append(Transaction(date=tx_date, category=category, amount=amount))
 
     logger.info("Parsed %d transactions from %s", len(transactions), path)
     return transactions
 
 
-def parse_csv(paths: Union[str, Sequence[str]]) -> List[Tuple[date, str, float]]:
+def parse_csv(paths: Union[str, Sequence[str]]) -> List[Transaction]:
     """Parse one or more CSV files into a list of transactions."""
     if isinstance(paths, str):
         paths = [paths]
 
-    all_tx: List[Tuple[date, str, float]] = []
+    all_tx: List[Transaction] = []
     for path in paths:
         try:
             tx = _parse_csv_file(path)
@@ -144,9 +179,7 @@ def parse_csv(paths: Union[str, Sequence[str]]) -> List[Tuple[date, str, float]]
     return all_tx
 
 
-def summarize(
-    transactions: Iterable[Tuple[date, str, float]],
-) -> Tuple[dict[str, float], dict[Tuple[int, int], dict[str, float]], float]:
+def summarize(transactions: Iterable[Transaction]) -> Summary:
     """Aggregate transactions by category and month."""
     tx_list = list(transactions)
     logger.debug("Summarizing %d transactions", len(tx_list))
@@ -154,16 +187,20 @@ def summarize(
     by_month: dict[Tuple[int, int], dict[str, float]] = defaultdict(
         lambda: {"income": 0.0, "expenses": 0.0}
     )
-    for tx_date, category, amount in tx_list:
-        category_totals[category] += amount
-        key = (tx_date.year, tx_date.month)
-        if amount >= 0:
-            by_month[key]["income"] += amount
+    for tx in tx_list:
+        category_totals[tx.category] += tx.amount
+        key = (tx.date.year, tx.date.month)
+        if tx.amount >= 0:
+            by_month[key]["income"] += tx.amount
         else:
-            by_month[key]["expenses"] += -amount
+            by_month[key]["expenses"] += -tx.amount
     overall = sum(category_totals.values())
     logger.debug("Overall balance computed: %s", overall)
-    return category_totals, by_month, overall
+    return Summary(
+        category_totals=category_totals,
+        savings_rate=savings_rate(by_month),
+        overall_balance=overall,
+    )
 
 
 def savings_rate(
