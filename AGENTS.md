@@ -1,7 +1,9 @@
 # AGENTS.md
 
 ## Quick Summary
-Financial Health Manager is a python based application that performs financial health management for the user. Different data is provided to the app like bank account, credit card, investment account statements and the app parses them to compute expense rate, savings rate, etc. it also generates nice charts for the user to view their activity. In future, it can also help users identify areas of improvement in their finances like high expenses etc
+Financial Health Manager is a Python based application that performs financial health management for the user. Different data is provided to the app like bank account, credit card and investment account statements and the app parses them to compute expense rate, savings rate, etc. It also generates nice charts for the user to view their activity. In future, it can help users identify areas of improvement in their finances such as high expenses.
+
+Transactions can be supplied in **multiple CSV files**. The parser understands common headers from institutions like Chase, Amex and Fidelity so files can usually be passed in directly with minimal preprocessing.
 
 ## Setup
 - Requires **Python 3.10** or newer
@@ -25,7 +27,7 @@ Financial Health Manager is a python based application that performs financial h
 - Run the app using a CSV file mounted at `/data`:
   ```bash
   docker run --rm -v $(pwd)/data:/data financial-health-manager \
-    python app.py /data/transactions.csv
+    python app.py /data/checking.csv /data/credit.csv
   ```
 
 ## Contribution Guidelines

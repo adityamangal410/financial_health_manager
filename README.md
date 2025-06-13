@@ -4,7 +4,15 @@ Financial Health Manager tracks your income and expenses from CSV files and comp
 
 ## Expected Inputs
 
-The program reads transaction data from a CSV file. Each row must contain:
+The program reads transaction data from one or more CSV files. It accepts
+standardized files exported from banks such as Chase or Amex, or brokerages like
+Fidelity, without any manual editing. When a statement uses unfamiliar headers,
+you can convert it to the minimal three-column format shown below.
+
+The parser understands common column names like `Date`, `Description`, `Amount`,
+`Credit`, and `Debit` so most statements work out of the box.
+
+Each row must contain:
 
 1. `date` - Transaction date in `YYYY-MM-DD` format
 2. `category` - Category name such as `income`, `rent`, `groceries` or any custom label
@@ -16,6 +24,12 @@ A sample file might look like this:
 2024-01-01,income,3000
 2024-01-03,rent,-1200
 2024-01-10,grocery,-150
+```
+
+You may pass multiple CSVs at once:
+
+```bash
+python app.py checking.csv credit_card.csv brokerage.csv
 ```
 
 ## Expected Output
@@ -75,10 +89,10 @@ ruff .
 
 ### Running the Application
 
-Provide a path to a CSV file containing transactions:
+Provide one or more CSV files containing transactions:
 
 ```bash
-python app.py data/transactions.csv
+python app.py data/transactions.csv data/credit.csv
 ```
 
 The script prints the summary to standard output.
