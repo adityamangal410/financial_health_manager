@@ -11,7 +11,7 @@ client = TestClient(app)
 
 
 def test_summarize_endpoint(tmp_path):
-    csv_text = "2024-01-01,income,100\n2024-01-02,rent,-50\n"
+    csv_text = "Date,Category,Amount\n2024-01-01,income,100\n2024-01-02,rent,-50\n"
     path = tmp_path / "t.csv"
     path.write_text(csv_text)
 
@@ -26,9 +26,9 @@ def test_summarize_endpoint(tmp_path):
 
 def test_summarize_multiple_files(tmp_path):
     path1 = tmp_path / "a.csv"
-    path1.write_text("2024-01-01,income,100\n")
+    path1.write_text("Date,Category,Amount\n2024-01-01,income,100\n")
     path2 = tmp_path / "b.csv"
-    path2.write_text("2024-01-02,rent,-60\n")
+    path2.write_text("Date,Category,Amount\n2024-01-02,rent,-60\n")
 
     with path1.open("rb") as f1, path2.open("rb") as f2:
         files = [

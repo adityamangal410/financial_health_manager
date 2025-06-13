@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import io
 import logging
 from collections import defaultdict
 from datetime import date, datetime
@@ -66,52 +65,22 @@ def _find_index(header: Sequence[str], options: Iterable[str]) -> Optional[int]:
 
 
 def _parse_csv_file(path: str) -> List[Transaction]:
-    """Parse a single CSV file of transactions."""
+    """Parse a single CSV file of transactions.
+
+    The CSV is expected to contain a header row. Columns may be named using any
+    of the values in ``DATE_FIELDS``, ``CATEGORY_FIELDS``, ``AMOUNT_FIELDS``,
+    ``CREDIT_FIELDS`` or ``DEBIT_FIELDS``.
+    """
     logger.info("Parsing CSV file %s", path)
 
-    with open(path) as f:
-        valid_lines = [line for line in f if line.strip() and len(line.split(",")) >= 3]
-
-    if not valid_lines:
-        logger.warning("CSV file %s is empty", path)
-        return []
-
     df = pd.read_csv(
-        io.StringIO("".join(valid_lines)),
-        header=None,
+        path,
         skip_blank_lines=True,
         on_bad_lines="skip",
         engine="python",
     )
 
-    first_row = [str(x).strip() for x in df.iloc[0].tolist()]
-    first_lower = [col.lower() for col in first_row]
-    header: Optional[List[str]] = None
-    if any(
-        col
-        in DATE_FIELDS | CATEGORY_FIELDS | AMOUNT_FIELDS | CREDIT_FIELDS | DEBIT_FIELDS
-        for col in first_lower
-    ):
-        header = first_row
-        df = df.iloc[1:].reset_index(drop=True)
-        logger.debug("Detected header row for %s: %s", path, header)
-
-    transactions: List[Transaction] = []
-
-    if header is None:
-        for _, row in df.iterrows():
-            try:
-                tx_date = _parse_date(str(row.iloc[0]))
-                category = str(row.iloc[1])
-                amount = _parse_amount(str(row.iloc[2]))
-            except (IndexError, ValueError, KeyError):
-                logger.warning("Skipping malformed row in %s: %s", path, row.tolist())
-                continue
-            transactions.append(
-                Transaction(date=tx_date, category=category, amount=amount)
-            )
-        logger.info("Parsed %d transactions from %s", len(transactions), path)
-        return transactions
+    header = [str(col) for col in df.columns]
 
     date_idx = _find_index(header, DATE_FIELDS)
     if date_idx is None:
@@ -131,6 +100,8 @@ def _parse_csv_file(path: str) -> List[Transaction]:
         debit_idx,
         category_idx,
     )
+
+    transactions: List[Transaction] = []
 
     for _, row in df.iterrows():
         try:
