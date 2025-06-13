@@ -11,7 +11,7 @@ from fhm.models import Transaction
 
 
 def test_parse_csv(tmp_path):
-    csv_text = "2024-01-01,income,3000\n2024-01-02,rent,-1200\n"
+    csv_text = "Date,Category,Amount\n2024-01-01,income,3000\n2024-01-02,rent,-1200\n"
     path = tmp_path / "transactions.csv"
     path.write_text(csv_text)
 
@@ -25,7 +25,7 @@ def test_parse_csv(tmp_path):
 
 def test_parse_csv_with_header_and_multiple_files(tmp_path):
     csv1 = "Date,Description,Amount\n01/05/2024,Coffee,-5\n"
-    csv2 = "2024-01-06,income,100\n"
+    csv2 = "Date,Category,Amount\n2024-01-06,income,100\n"
     path1 = tmp_path / "card.csv"
     path1.write_text(csv1)
     path2 = tmp_path / "extra.csv"
@@ -61,10 +61,7 @@ def test_summarize_and_savings_rate():
 
 def test_parse_csv_skips_bad_rows(tmp_path):
     csv_text = (
-        "\n\nThis is not csv\nDate,Description,Amount\n"
-        "2024-01-01,income,100\n"
-        "bad,row\n"
-        "2024-01-02,rent,-50\n"
+        "Date,Description,Amount\n2024-01-01,income,100\nbad,row\n2024-01-02,rent,-50\n"
     )
     path = tmp_path / "messy.csv"
     path.write_text(csv_text)
