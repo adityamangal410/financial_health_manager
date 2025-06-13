@@ -1,0 +1,18 @@
+[project]
+name = "financial-health-manager"
+version = "0.1.0"
+description = "Personal finance tracker that can compute savings rates and other metrics."
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+# Development extras
+# Ruff provides formatting and linting, pytest is for testing
+# Additional dependencies can be added as needed
+dev = [
+    "ruff>=0.0.0",
+    "pytest>=0.0.0"
+]
+
+[tool.ruff]
+line-length = 88
+
