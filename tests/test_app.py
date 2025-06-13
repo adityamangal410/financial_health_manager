@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Ensure the repository root is on the import path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app import parse_csv, summarize, savings_rate
+from fhm import parse_csv, summarize, savings_rate
 
 
 def test_parse_csv(tmp_path):

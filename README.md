@@ -95,7 +95,44 @@ Provide one or more CSV files containing transactions:
 python app.py data/transactions.csv data/credit.csv
 ```
 
+You can pass any number of files. They will all be parsed and summarized
+together.
+
 The script prints the summary to standard output.
+
+### Running the HTTP Service
+
+Start the FastAPI server using uvicorn:
+
+```bash
+uvicorn server:app --reload
+```
+
+Send one or more CSV files using `curl`:
+
+```bash
+curl -F "files=@checking.csv" \
+     -F "files=@credit.csv" \
+     http://localhost:8000/summarize
+```
+
+You can integrate this endpoint with an LLM-based MCP client by issuing an HTTP
+request containing the transaction CSVs and processing the JSON response.
+
+### Running the MCP Server
+
+The repository includes an experimental MCP server powered by **FastMCP**.
+Launch it as a standalone process:
+
+```bash
+python server.py
+```
+
+Clients can then interact with the tool `summarize_csvs` using the MCP
+protocol. Provide a list of file paths and the server returns the same summary
+data as the HTTP endpoint.
+LLM agents that support MCP can connect to this server and call the tool to
+obtain financial summaries in JSON format.
 
 ### Running Tests
 
@@ -116,12 +153,10 @@ A basic `Dockerfile` is included for convenience. Build the image and run the co
 # Build the image
 docker build -t financial-health-manager .
 
-# Run the application
-# Mount a local directory with CSV files to /data inside the container
-# Replace transactions.csv with your file name
+# Run the HTTP server
+# Expose port 8000 and mount a local directory with CSV files if needed
 
-docker run --rm -v $(pwd)/data:/data financial-health-manager \
-  python app.py /data/transactions.csv
+docker run --rm -p 8000:8000 financial-health-manager
 ```
 
 This approach lets you run the program without installing Python locally.

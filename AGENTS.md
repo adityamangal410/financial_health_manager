@@ -24,10 +24,13 @@ Transactions can be supplied in **multiple CSV files**. The parser understands c
   ```bash
   docker build -t financial-health-manager .
   ```
-- Run the app using a CSV file mounted at `/data`:
+- Run the HTTP server exposing port 8000:
   ```bash
-  docker run --rm -v $(pwd)/data:/data financial-health-manager \
-    python app.py /data/checking.csv /data/credit.csv
+  docker run --rm -p 8000:8000 financial-health-manager
+  ```
+- To start the MCP server instead:
+  ```bash
+  docker run --rm financial-health-manager python server.py
   ```
 
 ## Contribution Guidelines
