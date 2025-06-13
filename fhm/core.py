@@ -13,6 +13,7 @@ DATE_FIELDS = {
     "transaction date",
     "posting date",
     "settlement date",
+    "run date",
 }
 
 CATEGORY_FIELDS = {
