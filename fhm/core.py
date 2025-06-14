@@ -27,7 +27,7 @@ CATEGORY_FIELDS = {
     "details",
 }
 
-AMOUNT_FIELDS = {"amount"}
+AMOUNT_FIELDS = {"amount", "amount ($)"}
 CREDIT_FIELDS = {"credit"}
 DEBIT_FIELDS = {"debit"}
 
@@ -56,11 +56,14 @@ def _parse_amount(text: str) -> float:
 
 
 def _find_index(header: Sequence[str], options: Iterable[str]) -> Optional[int]:
-    """Return the index of the first matching option in ``header``."""
-    lower = [h.lower() for h in header]
+    """Return the index of the first matching option in ``header``.
+
+    Whitespace and casing differences are ignored when comparing column names.
+    """
+    normalized = [str(h).strip().lower() for h in header]
     for name in options:
-        if name in lower:
-            return lower.index(name)
+        if name in normalized:
+            return normalized.index(name)
     return None
 
 
@@ -78,6 +81,7 @@ def _parse_csv_file(path: str) -> List[Transaction]:
         skip_blank_lines=True,
         on_bad_lines="skip",
         engine="python",
+        index_col=False,
     )
 
     header = [str(col) for col in df.columns]
