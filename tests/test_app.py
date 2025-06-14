@@ -72,3 +72,15 @@ def test_parse_csv_skips_bad_rows(tmp_path):
         Transaction(date=date(2024, 1, 1), category="income", amount=100.0),
         Transaction(date=date(2024, 1, 2), category="rent", amount=-50.0),
     ]
+
+
+def test_parse_csv_header_whitespace(tmp_path):
+    csv_text = "  Run Date , Description , Amount ($)\n06/12/2025,Deposit,100\n"
+    path = tmp_path / "ws.csv"
+    path.write_text(csv_text)
+
+    result = parse_csv(str(path))
+
+    assert result == [
+        Transaction(date=date(2025, 6, 12), category="Deposit", amount=100.0)
+    ]
