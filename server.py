@@ -9,7 +9,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastmcp.server import FastMCP
 from fhm.models import Summary
 
-from fhm import parse_csv, summarize
+from fhm import get_month_details, parse_csv, summarize, yoy_monthly_expenses
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,26 @@ def summarize_csvs(paths: list[str]) -> Summary:
     summary = summarize(transactions)
     logger.debug("MCP summary generated. Overall balance: %s", summary.overall_balance)
     return summary
+
+
+@mcp_server.tool()
+def month_details(paths: list[str], month: str) -> dict[str, float]:
+    """Return category totals for a specific month."""
+    logger.info("Calculating month details for %s via MCP", month)
+    transactions = parse_csv(list(paths))
+    details = get_month_details(transactions, month)
+    logger.debug("MCP month details generated: %s", details)
+    return details
+
+
+@mcp_server.tool()
+def yoy_trends(paths: list[str]) -> dict[str, float]:
+    """Return average expenses per month across years."""
+    logger.info("Calculating YoY trends via MCP")
+    transactions = parse_csv(list(paths))
+    trends = yoy_monthly_expenses(transactions)
+    logger.debug("MCP YoY trends generated: %s", trends)
+    return trends
 
 
 app = FastAPI(title="Financial Health Manager")
@@ -53,6 +73,48 @@ async def summarize_endpoint(files: List[UploadFile] = File(...)) -> Summary:
         os.unlink(path)
     logger.debug("Summary from endpoint computed: %s", summary.json())
     return summary
+
+
+@app.post("/month/{month}")
+async def month_details_endpoint(
+    month: str, files: List[UploadFile] = File(...)
+) -> dict[str, float]:
+    """Return category totals for a specific month."""
+    paths: list[str] = []
+    logger.info("Received %d file(s) for month details %s", len(files), month)
+    for f in files:
+        data = await f.read()
+        temp = NamedTemporaryFile(delete=False)
+        temp.write(data)
+        temp.close()
+        paths.append(temp.name)
+
+    transactions = parse_csv(paths)
+    details = get_month_details(transactions, month)
+    for path in paths:
+        os.unlink(path)
+    logger.debug("Month details computed for %s: %s", month, details)
+    return details
+
+
+@app.post("/yoy")
+async def yoy_endpoint(files: List[UploadFile] = File(...)) -> dict[str, float]:
+    """Return average expenses per month across years."""
+    paths: list[str] = []
+    logger.info("Received %d file(s) for YoY trends", len(files))
+    for f in files:
+        data = await f.read()
+        temp = NamedTemporaryFile(delete=False)
+        temp.write(data)
+        temp.close()
+        paths.append(temp.name)
+
+    transactions = parse_csv(paths)
+    trends = yoy_monthly_expenses(transactions)
+    for path in paths:
+        os.unlink(path)
+    logger.debug("YoY trends computed: %s", trends)
+    return trends
 
 
 if __name__ == "__main__":
