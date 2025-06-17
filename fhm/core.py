@@ -216,3 +216,76 @@ def savings_rate(
             rates[f"{year}-{month:02d}"] = rate
     logger.debug("Savings rates computed: %s", rates)
     return rates
+
+
+def monthly_breakdown(
+    transactions: Iterable[Transaction],
+) -> dict[str, dict[str, float]]:
+    """Return category totals for each month.
+
+    Args:
+        transactions: Iterable of :class:`Transaction` objects.
+
+    Returns:
+        Mapping of ``YYYY-MM`` strings to dictionaries of category totals.
+
+    """
+    result: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    for tx in transactions:
+        key = f"{tx.date.year}-{tx.date.month:02d}"
+        result[key][tx.category] += tx.amount
+    # convert inner defaultdicts to regular dicts
+    return {month: dict(categories) for month, categories in result.items()}
+
+
+def get_month_details(
+    transactions: Iterable[Transaction], month: str
+) -> dict[str, float]:
+    """Return category totals for a specific month.
+
+    Args:
+        transactions: Iterable of :class:`Transaction` objects.
+        month: Month in ``YYYY-MM`` format.
+
+    Returns:
+        Dictionary of category totals for the specified month. If no
+        transactions exist for that month an empty dictionary is returned.
+    """
+    try:
+        year_str, mon_str = month.split("-")
+        year = int(year_str)
+        mon = int(mon_str)
+    except ValueError as exc:  # pragma: no cover - invalid input
+        raise ValueError("month must be in YYYY-MM format") from exc
+
+    totals: dict[str, float] = defaultdict(float)
+    for tx in transactions:
+        if tx.date.year == year and tx.date.month == mon:
+            totals[tx.category] += tx.amount
+    return dict(totals)
+
+
+def yoy_monthly_expenses(transactions: Iterable[Transaction]) -> dict[str, float]:
+    """Compute average expenses for each calendar month across years.
+
+    Args:
+        transactions: Iterable of :class:`Transaction` objects.
+
+    Returns:
+        Mapping of two-digit month strings (``"01"`` .. ``"12"``) to the
+        average expense for that month across all years. Expenses are returned as
+        positive numbers.
+    """
+    totals: dict[str, float] = defaultdict(float)
+    counts: dict[str, int] = defaultdict(int)
+    months_seen: set[tuple[int, int]] = set()
+
+    for tx in transactions:
+        if tx.amount < 0:
+            key = (tx.date.year, tx.date.month)
+            if key not in months_seen:
+                counts[f"{tx.date.month:02d}"] += 1
+                months_seen.add(key)
+            totals[f"{tx.date.month:02d}"] += -tx.amount
+    averages = {month: totals[month] / counts[month] for month in totals}
+    return averages

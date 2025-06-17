@@ -55,6 +55,15 @@ Along with savings rate, the following insights can help gauge your financial he
 - Months of living expenses covered by savings
 - Debt-to-income ratio
 
+### Interactive Analysis
+
+The CLI provides extra options to dive deeper into your spending:
+
+- ``--month YYYY-MM`` displays category totals for a specific month so you can
+  investigate unusual savings rates.
+- ``--yoy`` shows the average expenses for each calendar month across all
+  years, highlighting seasonal trends.
+
 ### Future Web Extension
 
 The core calculations live in a standalone module so the CLI can later be replaced or augmented by a web interface.
@@ -116,6 +125,11 @@ curl -F "files=@checking.csv" \
      http://localhost:8000/summarize
 ```
 
+Additional endpoints provide deeper analysis:
+
+- `POST /month/{YYYY-MM}` returns category totals for the specified month.
+- `POST /yoy` computes average expenses for each calendar month across years.
+
 You can integrate this endpoint with an LLM-based MCP client by issuing an HTTP
 request containing the transaction CSVs and processing the JSON response.
 
@@ -130,7 +144,10 @@ python server.py
 
 Clients can then interact with the tool `summarize_csvs` using the MCP
 protocol. Provide a list of file paths and the server returns the same summary
-data as the HTTP endpoint.
+data as the HTTP endpoint. Two additional tools are available:
+
+- `month_details` returns category totals for a specific month.
+- `yoy_trends` reports average expenses for each calendar month.
 LLM agents that support MCP can connect to this server and call the tool to
 obtain financial summaries in JSON format.
 
