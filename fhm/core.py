@@ -8,8 +8,23 @@ from datetime import date, datetime
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
-
 from .models import Summary, Transaction
+
+
+def _find_header_line(lines: list[str]) -> Optional[int]:
+    """Return the index of the header row within ``lines``.
+
+    The header row is identified by the presence of one of the
+    known :data:`DATE_FIELDS` values.
+    """
+    for i, line in enumerate(lines):
+        columns = [c.strip().lower() for c in line.split(",")]
+        if len(columns) < 3:
+            continue
+        if any(col in DATE_FIELDS for col in columns):
+            return i
+    return None
+
 
 DATE_FIELDS = {
     "date",
@@ -76,8 +91,18 @@ def _parse_csv_file(path: str) -> List[Transaction]:
     """
     logger.info("Parsing CSV file %s", path)
 
+    with open(path) as fh:
+        lines = fh.readlines()
+
+    header_line = _find_header_line(lines)
+    if header_line is None:
+        logger.error("Date column not found in %s: %s", path, lines[:5])
+        raise ValueError("Date column not found; please preprocess the file.")
+
     df = pd.read_csv(
         path,
+        skiprows=header_line,
+        header=0,
         skip_blank_lines=True,
         on_bad_lines="skip",
         engine="python",
