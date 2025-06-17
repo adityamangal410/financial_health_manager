@@ -84,3 +84,19 @@ def test_parse_csv_header_whitespace(tmp_path):
     assert result == [
         Transaction(date=date(2025, 6, 12), category="Deposit", amount=100.0)
     ]
+
+
+def test_parse_csv_with_leading_metadata(tmp_path):
+    """Handle files with extra lines before the header."""
+    csv_text = (
+        "History for Account X\nRun Date,06/12/2025\n"
+        "Date,Description,Amount\n06/11/2025,Deposit,200\n"
+    )
+    path = tmp_path / "fidelity.csv"
+    path.write_text(csv_text)
+
+    result = parse_csv(str(path))
+
+    assert result == [
+        Transaction(date=date(2025, 6, 11), category="Deposit", amount=200.0)
+    ]
