@@ -7,17 +7,17 @@ from server import mcp_server
 
 
 async def call_summary(paths):
-    return await mcp_server._call_tool("summarize_csvs", {"paths": paths})
+    return await mcp_server._mcp_call_tool("summarize_csvs", {"paths": paths})
 
 
 async def call_month_details(paths, month):
-    return await mcp_server._call_tool(
+    return await mcp_server._mcp_call_tool(
         "month_details", {"paths": paths, "month": month}
     )
 
 
 async def call_yoy(paths):
-    return await mcp_server._call_tool("yoy_trends", {"paths": paths})
+    return await mcp_server._mcp_call_tool("yoy_trends", {"paths": paths})
 
 
 def test_mcp_tool(tmp_path):
@@ -27,7 +27,7 @@ def test_mcp_tool(tmp_path):
     # call_tool returns a list of TextContent objects; parse JSON
     import json
 
-    summary = json.loads(result[0].text)
+    summary = json.loads(result[0].text)  # type: ignore[attr-defined]
     assert summary["overall_balance"] == 100.0
 
 
@@ -44,9 +44,9 @@ def test_mcp_month_and_yoy(tmp_path):
     import json
 
     details_res = asyncio.run(call_month_details([str(path1)], "2024-01"))
-    details = json.loads(details_res[0].text)
+    details = json.loads(details_res[0].text)  # type: ignore[attr-defined]
     assert details["rent"] == -50
 
     yoy_res = asyncio.run(call_yoy([str(path1), str(path2)]))
-    trends = json.loads(yoy_res[0].text)
+    trends = json.loads(yoy_res[0].text)  # type: ignore[attr-defined]
     assert trends["01"] == 60
