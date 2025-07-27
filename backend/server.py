@@ -7,7 +7,8 @@ import logging
 
 from fastapi import FastAPI, File, UploadFile
 from fastmcp.server import FastMCP
-from fhm.models import Summary
+from fhm.models import Summary, Transaction
+from fhm.pb_client import get_pocketbase_client
 
 from fhm import get_month_details, parse_csv, summarize, yoy_monthly_expenses
 
@@ -60,6 +61,12 @@ async def summarize_endpoint(files: List[UploadFile] = File(...)) -> Summary:
     """Return summary statistics for uploaded CSV files."""
     paths = []
     logger.info("Received %d file(s) for summarization", len(files))
+
+    # Get PocketBase client
+    pb = get_pocketbase_client()
+    # TODO: Replace with authenticated user
+    user_id = "test_user"
+
     for f in files:
         data = await f.read()
         temp = NamedTemporaryFile(delete=False)
@@ -67,11 +74,41 @@ async def summarize_endpoint(files: List[UploadFile] = File(...)) -> Summary:
         temp.close()
         paths.append(temp.name)
 
+        # Create upload record in PocketBase
+        try:
+            pb.collection("uploads").create(
+                {
+                    "user": user_id,
+                    "file": (os.path.basename(temp.name), temp.file),
+                    "status": "pending",
+                }
+            )
+            logger.info("Created upload record for %s", f.filename)
+        except Exception as e:
+            logger.error("Failed to create upload record for %s: %s", f.filename, e)
+
     transactions = parse_csv(paths)
+
+    # Create transaction records in PocketBase
+    for t in transactions:
+        try:
+            pb.collection("transactions").create(
+                {
+                    "user": user_id,
+                    "date": t.date.isoformat(),
+                    "description": t.description,
+                    "amount": t.amount,
+                    "category": t.category,
+                    "account": t.account,
+                }
+            )
+        except Exception as e:
+            logger.error("Failed to create transaction record: %s", e)
+
     summary = summarize(transactions)
     for path in paths:
         os.unlink(path)
-    logger.debug("Summary from endpoint computed: %s", summary.json())
+    logger.debug("Summary from endpoint computed: %s", summary.model_dump_json())
     return summary
 
 

@@ -34,12 +34,21 @@ DATE_FIELDS = {
     "run date",
 }
 
+DESCRIPTION_FIELDS = {
+    "description",
+    "details",
+    "payee",
+}
+
+ACCOUNT_FIELDS = {
+    "account",
+    "account name",
+}
+
 CATEGORY_FIELDS = {
     "category",
-    "description",
     "transaction type",
     "type",
-    "details",
 }
 
 AMOUNT_FIELDS = {"amount", "amount ($)"}
@@ -120,14 +129,18 @@ def _parse_csv_file(path: str) -> List[Transaction]:
     credit_idx = _find_index(header, CREDIT_FIELDS)
     debit_idx = _find_index(header, DEBIT_FIELDS)
     category_idx = _find_index(header, CATEGORY_FIELDS)
+    description_idx = _find_index(header, DESCRIPTION_FIELDS)
+    account_idx = _find_index(header, ACCOUNT_FIELDS)
     logger.debug(
-        "Header indexes for %s - date: %s, amount: %s, credit: %s, debit: %s, category: %s",
+        "Header indexes for %s - date: %s, amount: %s, credit: %s, debit: %s, category: %s, description: %s, account: %s",
         path,
         date_idx,
         amount_idx,
         credit_idx,
         debit_idx,
         category_idx,
+        description_idx,
+        account_idx,
     )
 
     transactions: List[Transaction] = []
@@ -149,15 +162,28 @@ def _parse_csv_file(path: str) -> List[Transaction]:
                     else 0.0
                 )
                 amount = credit - debit
+            description = (
+                str(row.iloc[description_idx]) if description_idx is not None else ""
+            )
             category = (
                 str(row.iloc[category_idx])
                 if category_idx is not None
                 else "uncategorized"
             )
+
+            account = str(row.iloc[account_idx]) if account_idx is not None else None
         except (KeyError, ValueError, IndexError):
             logger.warning("Skipping malformed row in %s: %s", path, row.tolist())
             continue
-        transactions.append(Transaction(date=tx_date, category=category, amount=amount))
+        transactions.append(
+            Transaction(
+                date=tx_date,
+                description=description,
+                category=category,
+                amount=amount,
+                account=account,
+            )
+        )
 
     logger.info("Parsed %d transactions from %s", len(transactions), path)
     return transactions
