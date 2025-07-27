@@ -1,4 +1,4 @@
-/pocketbase
+/pocketbase_bin
 .venv
 __pycache__/
 *.pyc
