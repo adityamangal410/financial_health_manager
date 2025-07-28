@@ -27,7 +27,13 @@ def test_mcp_tool(tmp_path):
     # result is a list of TextContent objects
     import json
 
-    summary = json.loads(result[0].text)  # type: ignore[attr-defined]
+    # Support both flat and nested result formats
+    first = result[0]
+    if isinstance(first, list):
+        content = first[0]
+    else:
+        content = first
+    summary = json.loads(content.text)  # type: ignore[attr-defined]
     assert summary["overall_balance"] == 100.0
 
 
@@ -44,9 +50,19 @@ def test_mcp_month_and_yoy(tmp_path):
     import json
 
     details_res = asyncio.run(call_month_details([str(path1)], "2024-01"))
-    details = json.loads(details_res[0].text)  # type: ignore[attr-defined]
+    first = details_res[0]
+    if isinstance(first, list):
+        content = first[0]
+    else:
+        content = first
+    details = json.loads(content.text)  # type: ignore[attr-defined]
     assert details["rent"] == -50
 
     yoy_res = asyncio.run(call_yoy([str(path1), str(path2)]))
-    trends = json.loads(yoy_res[0].text)  # type: ignore[attr-defined]
+    first = yoy_res[0]
+    if isinstance(first, list):
+        content = first[0]
+    else:
+        content = first
+    trends = json.loads(content.text)  # type: ignore[attr-defined]
     assert trends["01"] == 60
