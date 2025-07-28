@@ -15,6 +15,7 @@ dev = [
     "uvicorn>=0.0.0",
     "fastmcp>=0.0.0",
     "pandas>=0.0.0",
+    "pocketbase>=0.15.0",
 ]
 
 [tool.ruff]

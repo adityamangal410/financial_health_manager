@@ -10,8 +10,10 @@ class Transaction(BaseModel):
     """Single financial transaction."""
 
     date: date
+    description: str
     category: str
     amount: float
+    account: str | None = None
 
 
 class Summary(BaseModel):
