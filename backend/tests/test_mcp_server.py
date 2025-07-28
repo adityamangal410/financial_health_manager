@@ -24,7 +24,7 @@ def test_mcp_tool(tmp_path):
     path1 = tmp_path / "a.csv"
     path1.write_text("Date,Category,Amount\n2024-01-01,income,100\n")
     result = asyncio.run(call_summary([str(path1)]))
-    # call_tool returns a list of TextContent objects; parse JSON
+    # result is a list of TextContent objects
     import json
 
     summary = json.loads(result[0].text)  # type: ignore[attr-defined]
