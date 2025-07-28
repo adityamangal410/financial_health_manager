@@ -15,7 +15,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install uv
-          uv pip install --system -e ".[dev]"
+          cd backend
+          uv pip install --system -e .[dev]
+          cd ..
       - name: Check formatting
         run: ruff format --check .
       - name: Run ruff
