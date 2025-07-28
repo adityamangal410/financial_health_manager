@@ -1,4 +1,3 @@
-import os
 import getpass
 from pocketbase import PocketBase
 
@@ -21,7 +20,7 @@ def main():
 
     # 1. Create 'users' collection (extending auth collection)
     try:
-        users_collection = client.collections.get_one("users")
+        client.collections.get_one("users")
         print("'users' collection already exists.")
     except Exception:
         print("Creating 'users' collection...")
@@ -46,7 +45,7 @@ def main():
 
     # 2. Create 'transactions' collection
     try:
-        transactions_collection = client.collections.get_one("transactions")
+        client.collections.get_one("transactions")
         print("'transactions' collection already exists.")
     except Exception:
         print("Creating 'transactions' collection...")
@@ -80,7 +79,7 @@ def main():
 
     # 3. Create 'uploads' collection
     try:
-        uploads_collection = client.collections.get_one("uploads")
+        client.collections.get_one("uploads")
         print("'uploads' collection already exists.")
     except Exception:
         print("Creating 'uploads' collection...")

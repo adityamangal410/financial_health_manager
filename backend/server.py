@@ -7,7 +7,7 @@ import logging
 
 from fastapi import FastAPI, File, UploadFile
 from fastmcp.server import FastMCP
-from fhm.models import Summary, Transaction
+from fhm.models import Summary
 from fhm.pb_client import get_pocketbase_client
 
 from fhm import get_month_details, parse_csv, summarize, yoy_monthly_expenses
