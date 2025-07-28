@@ -153,14 +153,28 @@ obtain financial summaries in JSON format.
 
 ### Running Tests
 
-Run `ruff` to ensure formatting and linting pass before executing tests:
+Activate the project virtual environment and install dependencies:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+cd backend && uv pip install -e .[dev]
+cd ..
+```
+
+Run linting:
 
 ```bash
 ruff .
-pytest
 ```
 
-If you add new modules, place tests in the `tests/` directory so `pytest` can discover them.
+Run unit tests:
+
+```bash
+cd backend && uv run pytest
+```
+
+If you add new modules, place tests in the `backend/tests/` directory so `pytest` can discover them.
 
 ## Running with Docker
 
