@@ -1,0 +1,372 @@
+[
+  {
+    "id": "users",
+    "name": "users", 
+    "type": "auth",
+    "system": false,
+    "schema": [
+      {
+        "id": "users_name",
+        "name": "name",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "users_avatar",
+        "name": "avatar",
+        "type": "file",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "mimeTypes": [
+            "image/jpeg",
+            "image/png",
+            "image/gif"
+          ],
+          "thumbs": null,
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "protected": false
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "id = @request.auth.id",
+    "viewRule": "id = @request.auth.id",
+    "createRule": "",
+    "updateRule": "id = @request.auth.id",
+    "deleteRule": "id = @request.auth.id",
+    "options": {
+      "allowEmailAuth": true,
+      "allowOAuth2Auth": false,
+      "allowUsernameAuth": false,
+      "exceptEmailDomains": null,
+      "manageRule": null,
+      "minPasswordLength": 8,
+      "onlyEmailDomains": null,
+      "onlyVerified": false,
+      "requireEmail": true
+    }
+  },
+  {
+    "id": "transactions",
+    "name": "transactions",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "transactions_user",
+        "name": "user",
+        "type": "relation",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "users",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": ["email"]
+        }
+      },
+      {
+        "id": "transactions_date",
+        "name": "date",
+        "type": "date",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "id": "transactions_description",
+        "name": "description",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 1000,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "transactions_amount",
+        "name": "amount",
+        "type": "number",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "noDecimal": false
+        }
+      },
+      {
+        "id": "transactions_category",
+        "name": "category",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 100,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "transactions_account",
+        "name": "account",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 100,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "transactions_file_hash",
+        "name": "file_hash",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 64,
+          "max": 64,
+          "pattern": ""
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id"
+  },
+  {
+    "id": "uploads",
+    "name": "uploads",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "uploads_user",
+        "name": "user",
+        "type": "relation",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "users",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": ["email"]
+        }
+      },
+      {
+        "id": "uploads_file",
+        "name": "file",
+        "type": "file",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "mimeTypes": [
+            "text/csv",
+            "application/csv",
+            "text/plain"
+          ],
+          "thumbs": null,
+          "maxSelect": 1,
+          "maxSize": 10485760,
+          "protected": false
+        }
+      },
+      {
+        "id": "uploads_status",
+        "name": "status",
+        "type": "select",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "pending",
+            "processing",
+            "completed",
+            "failed"
+          ]
+        }
+      },
+      {
+        "id": "uploads_transaction_count",
+        "name": "transaction_count",
+        "type": "number",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null,
+          "noDecimal": true
+        }
+      },
+      {
+        "id": "uploads_error_message",
+        "name": "error_message",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 1000,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "uploads_file_hash",
+        "name": "file_hash",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 64,
+          "max": 64,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "uploads_filename",
+        "name": "filename",
+        "type": "text",
+        "system": false,
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": 255,
+          "pattern": ""
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id"
+  },
+  {
+    "id": "file_uploads",
+    "name": "file_uploads",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "id": "file_uploads_user",
+        "name": "user",
+        "type": "relation",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "users",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": ["email"]
+        }
+      },
+      {
+        "id": "file_uploads_filename",
+        "name": "filename",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 255,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "file_uploads_file_hash",
+        "name": "file_hash",
+        "type": "text",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 64,
+          "max": 64,
+          "pattern": ""
+        }
+      },
+      {
+        "id": "file_uploads_transaction_count",
+        "name": "transaction_count",
+        "type": "number",
+        "system": false,
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 0,
+          "max": null,
+          "noDecimal": true
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_user_hash` ON `file_uploads` (`user`, `file_hash`)"
+    ],
+    "listRule": "user = @request.auth.id",
+    "viewRule": "user = @request.auth.id",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "user = @request.auth.id",
+    "deleteRule": "user = @request.auth.id"
+  }
+]

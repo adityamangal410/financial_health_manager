@@ -64,9 +64,16 @@ The CLI provides extra options to dive deeper into your spending:
 - ``--yoy`` shows the average expenses for each calendar month across all
   years, highlighting seasonal trends.
 
-### Future Web Extension
+### Web Application
 
-The core calculations live in a standalone module so the CLI can later be replaced or augmented by a web interface.
+A modern React TypeScript web application is available that provides a comprehensive dashboard for financial analysis. The web interface includes:
+
+- 🔐 **Secure Authentication** - User registration, login, and password reset
+- 📊 **Interactive Dashboard** - Visual overview of income, expenses, and savings
+- 📈 **Data Visualization** - Interactive charts and graphs for financial insights
+- 📤 **CSV Upload** - Drag-and-drop file upload with progress tracking
+- 🔍 **Transaction Management** - Advanced filtering, sorting, and search capabilities
+- 🎨 **Modern UI** - Clean, responsive design that works on desktop and mobile
 
 
 ## Development Setup
@@ -150,6 +157,145 @@ data as the HTTP endpoint. Two additional tools are available:
 - `yoy_trends` reports average expenses for each calendar month.
 LLM agents that support MCP can connect to this server and call the tool to
 obtain financial summaries in JSON format.
+
+### Running the Web Application
+
+The web application provides a modern interface for financial analysis with authentication, dashboards, and interactive features.
+
+#### 🚀 Easy Setup with Management Script
+
+We provide a comprehensive management script that handles everything for you:
+
+**Quick Start (Recommended):**
+```bash
+# Set up the environment (one-time setup)
+./run.sh setup
+
+# Start the entire application stack
+./run.sh start
+
+# Open the application in your browser
+./run.sh open
+```
+
+**Management Commands:**
+```bash
+./run.sh status          # Check service status
+./run.sh stop            # Stop all services
+./run.sh restart         # Restart all services
+./run.sh logs all        # View logs from all services
+./run.sh logs frontend -f # Follow frontend logs
+./run.sh health          # Check service health
+./run.sh help            # Show all available commands
+```
+
+The script automatically:
+- ✅ Downloads and configures PocketBase
+- ✅ Sets up Python virtual environment
+- ✅ Installs all dependencies
+- ✅ Starts all services in the correct order
+- ✅ Manages process lifecycle and logging
+- ✅ Provides health checks and debugging tools
+
+#### Manual Setup (Alternative)
+
+If you prefer manual control:
+
+**Prerequisites:**
+- **Node.js 18+** and npm
+- **Python 3.10+**
+- **curl** and **unzip** (for PocketBase download)
+
+**Quick Start:**
+1. **Setup frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+2. **Access the application:**
+   ```
+   http://localhost:3000
+   ```
+
+**Full Stack Setup:**
+
+1. **Backend setup:**
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   cd backend
+   pip install -r requirements.txt
+   uvicorn server:app --reload --port 8000
+   ```
+
+2. **PocketBase setup:**
+   ```bash
+   # Download PocketBase from https://pocketbase.io/docs/
+   ./pocketbase serve --http 0.0.0.0:8090
+   ```
+
+3. **Frontend setup:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+#### 🎯 Application URLs
+
+Once started, access these services:
+
+- **🌐 Web Application:** http://localhost:3000
+- **🔧 API Backend:** http://localhost:8000
+- **📊 PocketBase Admin:** http://localhost:8090/_/
+
+#### Production Build
+
+```bash
+cd frontend
+npm run build
+# Built files will be in frontend/dist/
+```
+
+#### Environment Configuration
+
+The application automatically creates configuration files, but you can customize:
+
+**Frontend (`.env.local`):**
+```env
+VITE_API_URL=http://localhost:8000
+VITE_POCKETBASE_URL=http://localhost:8090
+```
+
+#### 🛠️ Debugging & Troubleshooting
+
+**Service Management:**
+```bash
+./run.sh status          # Check which services are running
+./run.sh health          # Test service connectivity
+./run.sh logs all        # View recent logs from all services
+./run.sh restart         # Restart all services
+```
+
+**Individual Service Control:**
+```bash
+./run.sh start frontend   # Start only frontend
+./run.sh stop backend     # Stop only backend
+./run.sh logs pocketbase -f  # Follow PocketBase logs
+```
+
+**Reset & Clean:**
+```bash
+./run.sh reset           # Reset all application data
+./run.sh clean           # Clean dependencies and build files
+```
+
+**Common Issues:**
+- **Port conflicts:** Stop other services using ports 3000, 8000, or 8090
+- **Permission errors:** Ensure `run.sh` is executable (`chmod +x run.sh`)
+- **Network issues:** Check firewall settings for local development ports
 
 ### Running Tests
 

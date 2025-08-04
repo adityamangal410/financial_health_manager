@@ -1,4 +1,5 @@
 import getpass
+import sys
 from pocketbase import PocketBase
 
 
@@ -8,8 +9,14 @@ def main():
     """
     client = PocketBase("http://127.0.0.1:8090")
 
-    admin_email = input("Enter admin email: ")
-    admin_password = getpass.getpass("Enter admin password: ")
+    # Use command line args if provided, otherwise prompt
+    if len(sys.argv) >= 3:
+        admin_email = sys.argv[1]
+        admin_password = sys.argv[2]
+        print(f"Using provided credentials for {admin_email}")
+    else:
+        admin_email = input("Enter admin email: ")
+        admin_password = getpass.getpass("Enter admin password: ")
 
     try:
         client.admins.auth_with_password(admin_email, admin_password)

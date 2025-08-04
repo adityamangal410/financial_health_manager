@@ -1,12 +1,82 @@
-/pocketbase_bin
-.venv
+# Runtime files from run.sh script
+.pids/
+logs/
+pocketbase/pb_data/
+pocketbase/pocketbase*
+
+# Sample/Test data files
+*.csv
+*.CSV
+sample_transactions.csv
+Chase*.CSV
+History_for_Account*.csv
+
+# PocketBase binary files
+pocketbase_bin/
+
+# Demo and setup scripts (keep the main ones)
+create_demo_user.py
+create_user_simple.py
+
+# Environment files
+.env.local
+.env.production.local
+
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.ruff_cache/
-.vscode/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
 dist/
-*.egg-info
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+
+# Build outputs
+frontend/dist/
+frontend/.vite/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
