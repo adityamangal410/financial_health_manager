@@ -8,16 +8,20 @@ import {
     useTransactions
 } from '../../hooks/useFinancialData';
 import { usePocketBaseRealtime } from '../../hooks/usePocketBaseRealtime';
+import { aiAnalysisService } from '../../services/aiAnalysis';
+import { FinancialChatbot } from '../ai/FinancialChatbot';
 import MonthlyTimeSeriesChart from '../charts/MonthlyTimeSeriesChart';
+import SavingsRateChart from '../charts/SavingsRateChart';
 import YearOverYearChart from '../charts/YearOverYearChart';
 import { ApiStatus } from '../common/ApiStatus';
 import { TransactionTable } from '../transactions/TransactionTable';
-import { FileUpload } from '../upload/FileUpload';
+import { EnhancedFileUpload } from '../upload/EnhancedFileUpload';
 import { CategoryChart } from './CategoryChart';
 import { FinancialSummaryComponent } from './FinancialSummary';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const [showAdvancedTools] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   
@@ -55,6 +59,16 @@ export function Dashboard() {
   
   // Set up real-time updates from PocketBase
   usePocketBaseRealtime();
+
+  // AI Analysis handler
+  const handleAIAnalysis = async (query: string): Promise<string> => {
+    try {
+      const result = await aiAnalysisService.analyzeFinancialQuery(query);
+      return result.response;
+    } catch (error) {
+      return "I'm sorry, I encountered an error while analyzing your financial data. Please try again.";
+    }
+  };
 
   // Extract transactions from the API response
   const transactions = transactionsData?.transactions || [];
@@ -186,9 +200,11 @@ export function Dashboard() {
               </button>
             )}
           </div>
-          <FileUpload 
+          <EnhancedFileUpload 
             onUploadComplete={handleUploadSuccess}
             onUploadError={handleUploadError}
+            disabled={false}
+            useWizard={showAdvancedTools}
           />
         </div>
 
@@ -221,14 +237,26 @@ export function Dashboard() {
               </div>
             )}
 
-            {/* Time Series Charts */}
+            {/* Enhanced Visualizations */}
             {transactions.length > 0 && (
               <>
-                {/* Monthly Time Series Chart */}
+                {/* Savings Rate Chart - New Enhanced Visualization */}
+                <div className="card mb-6">
+                  <SavingsRateChart 
+                    config={{ months: 12 }}
+                    height={400}
+                    showTargetLine={true}
+                    targetSavingsRate={20}
+                  />
+                </div>
+
+                {/* Monthly Time Series Chart - Enhanced with Zoom */}
                 <div className="card mb-6">
                   <MonthlyTimeSeriesChart 
                     config={{ metric: 'expenses', months: 12 }}
                     height={400}
+                    enableZoom={true}
+                    showSummaryStats={true}
                   />
                 </div>
 
@@ -286,6 +314,9 @@ export function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* AI Financial Chatbot - Fixed position overlay */}
+      <FinancialChatbot onAnalysisRequest={handleAIAnalysis} />
     </div>
   );
 }

@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  pocketbase:
+    image: ghcr.io/pocketbase/pocketbase:latest
+    container_name: fhm-pocketbase
+    command: serve --http 0.0.0.0:8090
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./pocketbase/pb_data:/pb_data
+      - ./pocketbase/pb_migrations:/pb_migrations
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fhm-backend
+    environment:
+      - POCKETBASE_URL=http://pocketbase:8090
+    ports:
+      - "8001:8001"
+    depends_on:
+      - pocketbase
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fhm-frontend
+    environment:
+      - VITE_API_URL=http://localhost:8001
+      - VITE_POCKETBASE_URL=http://localhost:8090
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: fhm-net
+

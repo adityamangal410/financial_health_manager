@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
     Bar,
+    Brush,
     CartesianGrid,
     ComposedChart,
     Legend,
@@ -17,12 +18,16 @@ interface MonthlyTimeSeriesChartProps {
   config?: Partial<TimeSeriesConfig>;
   height?: number;
   className?: string;
+  enableZoom?: boolean;
+  showSummaryStats?: boolean;
 }
 
 export default function MonthlyTimeSeriesChart({
   config = {},
   height = 400,
   className = '',
+  enableZoom = true,
+  showSummaryStats = true,
 }: MonthlyTimeSeriesChartProps) {
   // Default configuration
   const [chartConfig, setChartConfig] = useState<TimeSeriesConfig>({
@@ -144,11 +149,63 @@ export default function MonthlyTimeSeriesChart({
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
-                `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                name.charAt(0).toUpperCase() + name.slice(1)
-              ]}
-              labelFormatter={(label) => `Month: ${label}`}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0]?.payload;
+                  return (
+                    <div style={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.5rem',
+                      padding: '1rem',
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                      minWidth: '240px'
+                    }}>
+                      <p style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#1f2937' }}>
+                        {label}
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ width: '0.75rem', height: '0.75rem', backgroundColor: '#10b981', borderRadius: '50%' }} />
+                            <span style={{ color: '#10b981', fontWeight: '600' }}>Income:</span>
+                          </div>
+                          <span style={{ fontWeight: '600' }}>${data?.income?.toLocaleString() || '0'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ width: '0.75rem', height: '0.75rem', backgroundColor: '#ef4444', borderRadius: '50%' }} />
+                            <span style={{ color: '#ef4444', fontWeight: '600' }}>Expenses:</span>
+                          </div>
+                          <span style={{ fontWeight: '600' }}>${data?.expenses?.toLocaleString() || '0'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ width: '0.75rem', height: '0.75rem', backgroundColor: '#3b82f6', borderRadius: '50%' }} />
+                            <span style={{ color: '#3b82f6', fontWeight: '600' }}>Net:</span>
+                          </div>
+                          <span style={{ 
+                            fontWeight: '600',
+                            color: (data?.net || 0) >= 0 ? '#10b981' : '#ef4444'
+                          }}>
+                            ${data?.net?.toLocaleString() || '0'}
+                          </span>
+                        </div>
+                        <div style={{ 
+                          marginTop: '0.5rem', 
+                          paddingTop: '0.5rem', 
+                          borderTop: '1px solid #e5e7eb',
+                          fontSize: '0.875rem',
+                          color: '#6b7280'
+                        }}>
+                          {data?.transactions || 0} transactions
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Legend />
             
@@ -173,12 +230,24 @@ export default function MonthlyTimeSeriesChart({
               dot={{ r: chartConfig.metric === 'net' ? 4 : 2 }}
               name="Net"
             />
+            
+            {/* Zoom/Brush functionality */}
+            {enableZoom && chartData.length > 6 && (
+              <Brush
+                dataKey="month"
+                height={30}
+                stroke="#0ea5e9"
+                fill="#f0f9ff"
+                tickFormatter={(value: string | number) => String(value)}
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
 
       {/* Summary Stats */}
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+      {showSummaryStats && (
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
         <div className="text-center">
           <p className="text-gray-500">Avg Monthly Income</p>
           <p className="font-semibold text-green-600">
@@ -203,7 +272,8 @@ export default function MonthlyTimeSeriesChart({
             {chartData.reduce((sum, d) => sum + d.transactions, 0).toLocaleString()}
           </p>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

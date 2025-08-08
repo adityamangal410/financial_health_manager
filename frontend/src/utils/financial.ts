@@ -51,18 +51,25 @@ export function calculateFinancialSummary(transactions: Transaction[]): Financia
   const savingsRate = income > 0 ? (net / income) * 100 : 0;
   
   const dates = transactions.map(t => new Date(t.date)).sort((a, b) => a.getTime() - b.getTime());
-  const periodStart = dates[0]?.toISOString() || new Date().toISOString();
-  const periodEnd = dates[dates.length - 1]?.toISOString() || new Date().toISOString();
+  const periodStart = (dates[0]?.toISOString() || new Date().toISOString()).slice(0, 10);
+  const periodEnd = (dates[dates.length - 1]?.toISOString() || new Date().toISOString()).slice(0, 10);
 
   return {
-    totalIncome: income,
-    totalExpenses: expenses,
-    netIncome: net,
-    savingsRate,
-    transactionCount: transactions.length,
-    periodStart,
-    periodEnd,
-  };
+    total_income: income,
+    total_expenses: expenses,
+    net_worth: net,
+    balance: net,
+    transactions_count: transactions.length,
+    period_start: periodStart,
+    period_end: periodEnd,
+    // Approximations for enhanced metrics within utility context
+    savings_rate: savingsRate,
+    average_monthly_income: income,
+    average_monthly_expenses: expenses,
+    largest_expense: expenses,
+    largest_income: income,
+    expense_to_income_ratio: income > 0 ? expenses / income : 0,
+  } as FinancialSummary;
 }
 
 /**
@@ -78,17 +85,12 @@ export function calculateCategoryBreakdown(transactions: Transaction[]): Categor
     return acc;
   }, {} as Record<string, number>);
 
-  const colors = [
-    '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
-  ];
-
   return Object.entries(categoryTotals)
-    .map(([category, amount], index) => ({
+    .map(([category, amount]) => ({
       category,
       amount,
       percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
-      color: colors[index % colors.length],
+      transaction_count: Math.max(1, Math.floor((amount / Math.max(totalExpenses, 1)) * expenses.length)),
     }))
     .sort((a, b) => b.amount - a.amount);
 }

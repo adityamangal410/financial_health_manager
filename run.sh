@@ -297,14 +297,14 @@ start_backend() {
         return 1
     fi
     
-    nohup uvicorn server:app --reload --host 0.0.0.0 --port 8000 > "$BACKEND_LOG" 2>&1 &
+    nohup uvicorn server:app --reload --host 0.0.0.0 --port 8001 > "$BACKEND_LOG" 2>&1 &
     echo $! > "$BACKEND_PID"
     cd "$PROJECT_ROOT"
     
     # Wait for backend to start
     sleep 3
     if is_running "$BACKEND_PID"; then
-        print_success "Backend started (PID: $(cat $BACKEND_PID)) - http://localhost:8000"
+        print_success "Backend started (PID: $(cat $BACKEND_PID)) - http://localhost:8001"
     else
         print_error "Failed to start backend"
         cat "$BACKEND_LOG" | tail -10  # Show recent logs for debugging
@@ -325,7 +325,7 @@ start_frontend() {
     # Create environment file if it doesn't exist
     if [[ ! -f ".env.local" ]]; then
         cat > .env.local << EOF
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8001
 VITE_POCKETBASE_URL=http://localhost:8090
 EOF
         print_status "Created .env.local with default configuration"
@@ -392,7 +392,7 @@ show_status() {
     
     # Backend
     if is_running "$BACKEND_PID"; then
-        echo -e "Backend        ${GREEN}Running${NC}     $(cat $BACKEND_PID)    http://localhost:8000"
+        echo -e "Backend        ${GREEN}Running${NC}     $(cat $BACKEND_PID)    http://localhost:8001"
     else
         echo -e "Backend        ${RED}Stopped${NC}     -       -"
     fi
@@ -506,7 +506,7 @@ health_check() {
     fi
     
     # Check Backend
-    if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+    if curl -s http://localhost:8001/health > /dev/null 2>&1; then
         print_success "Backend: Healthy"
     else
         print_error "Backend: Unhealthy or not running"
@@ -567,7 +567,7 @@ Examples:
 
 URLs:
   Frontend:    http://localhost:3000
-  Backend:     http://localhost:8000
+  Backend:     http://localhost:8001
   PocketBase:  http://localhost:8090/_/
 
 EOF
